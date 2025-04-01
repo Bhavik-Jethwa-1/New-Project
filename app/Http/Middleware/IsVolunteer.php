@@ -15,7 +15,7 @@ class IsVolunteer
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (auth()->check() && auth()->user()->role === 'volunteer' && auth()->user->role ==='admin') {
+        if (auth()->check() && auth()->user()->role === 'volunteer') {
             return $next($request);
         }
 
