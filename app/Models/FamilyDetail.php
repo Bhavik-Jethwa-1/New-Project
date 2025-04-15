@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\PersonDetail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -20,7 +21,7 @@ class FamilyDetail extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function persons()
+    public function personDetails()
     {
         return $this->hasMany(PersonDetail::class, 'family_id');
     }
