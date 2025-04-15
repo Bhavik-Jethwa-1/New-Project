@@ -13,7 +13,7 @@ Route::group(['middleware'=>['auth:sanctum','admin'], 'prefix' => 'admin'],funct
     Route::put('/volunteer-requests/{id}', [VolunteerRequestController::class, 'update']); #tested
 
 
-    Route::get('/person-details', [PersonDetailController::class, 'index']); // Get all $tested
+    Route::get('/person-details', [PersonDetailController::class, 'index']); // Get all #tested
     Route::get('/person-details/search', [PersonDetailController::class, 'search']); // Admin search
     Route::put('/person-details/{id}', [PersonDetailController::class, 'update']); // Admin can update
     Route::delete('/person-details/{id}', [PersonDetailController::class, 'destroy']); // Admin can delete 

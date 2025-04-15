@@ -46,7 +46,7 @@ class FamilyDetailController extends Controller
 
        $validatedData = $request->validate([
            'head_of_family' => 'required|string|max:122',
-           'mobile_number' => 'required|unique:family_details|string|max:15',
+           'mobile_number' => 'required|unique:family_details|string|max:10|min:10',
            'village' => 'required|string|max:255',
            'taluka' => 'required|string|max:255',
            'district' => 'required|string|max:255',
@@ -79,17 +79,17 @@ class FamilyDetailController extends Controller
        }
 
        $validatedData = $request->validate([
-           'head_of_family' => 'required|string|max:122',
-           'mobile_number' => 'required|string|max:15',
-           'village' => 'required|string|max:255',
-           'taluka' => 'required|string|max:255',
-           'district' => 'required|string|max:255',
-           'address' => 'required|string',
-           'sub_caste' => 'required|in:1,2,3,4',
-           'ration_card' => 'required|in:yes,no,APL,BPL',
-           'number_of_family_members' => 'required|integer|min:1',
-           'ward_no' => 'required|integer',
-           'vidhan_sabha' => 'required|string|max:255',
+           'head_of_family' => 'string|max:122',
+           'mobile_number' => 'required|string|max:10|min:10',
+           'village' => 'string|max:255',
+           'taluka' => 'string|max:255',
+           'district' => 'string|max:255',
+           'address' => 'string',
+           'sub_caste' => 'in:1,2,3,4',
+           'ration_card' => 'in:yes,no,APL,BPL',
+           'number_of_family_members' => 'integer|min:1',
+           'ward_no' => 'integer',
+           'vidhan_sabha' => 'string|max:255',
        ]);
 
        $family->update($validatedData);
