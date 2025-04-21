@@ -64,6 +64,9 @@ class AuthController extends Controller
             }
 
             $user = Auth::user();
+            $user->is_admin = $user->role === 'admin' ? true : false;
+            $user->save();
+
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([
@@ -74,7 +77,7 @@ class AuthController extends Controller
                     'full_name' => $user->full_name,
                     'mobile_number' => $user->mobile_number,
                     'role' => $user->role,
-                    'is_admin' => $user->role === 'admin' ? 1 : 0
+                    'is_admin' => (bool) $user->is_admin,
                 ]
             ], 200);
         } catch (\Throwable $e) {

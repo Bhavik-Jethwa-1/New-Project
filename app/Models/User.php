@@ -17,6 +17,7 @@ class User extends Authenticatable
         'mobile_number',
         'password',
         'role',
+        'is_admin',
         'is_active',
     ];
 

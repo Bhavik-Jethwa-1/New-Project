@@ -11,20 +11,37 @@ use Exception;
 
 class PersonDetailController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
-            if (Auth::user()->role === 'admin') {
-                $data = PersonDetail::with('family')->paginate(20);
+            $user = Auth::user();
+            $query = PersonDetail::with('family');
+
+            if ($user->role === 'volunteer') {
+                $query->where('user_id', $user->id);
+            } elseif ($user->role === 'admin') {
+                $filterableFields = [
+                    'full_name', 'gender', 'dob', 'education', 'profession',
+                    'mobile_no', 'email', 'aadhar_no', 'marital_status',
+                    'special_ability', 'caste', 'relation_with_head'
+                ];
+    
+                foreach ($filterableFields as $field) {
+                    if ($request->filled($field)) {
+                        $query->where($field, $request->input($field));
+                    }
+                }
             } else {
-                $data = PersonDetail::where('user_id', Auth::id())->with('family')->paginate(20);
+                return response()->json(['message' => 'Unauthorized'], 403);
             }
 
-            return response()->json($data);
-        } catch (Exception $e) {
+            return response()->json($query->paginate(50), 200);
+        } catch (\Throwable $e) {
+            \Log::error('Person Index Error: ' . $e->getMessage());
             return response()->json(['message' => 'Error fetching records', 'error' => $e->getMessage()], 500);
         }
     }
+
 
     public function store(Request $request)
     {
@@ -91,12 +108,11 @@ class PersonDetailController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, PersonDetail $person)
     {
         try {
-            $data = PersonDetail::findOrFail($id);
-
-            if (Auth::user()->role !== 'admin' && Auth::id() !== $data->user_id) {
+            // Authorization check
+            if (Auth::user()->role !== 'admin' && Auth::id() !== $person->user_id) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
 
@@ -119,7 +135,7 @@ class PersonDetailController extends Controller
                 'handicap_percentage' => 'nullable|numeric|min:1|max:100',
                 'handicap_card' => 'nullable|in:yes,no',
                 'orphan' => 'in:yes,no',
-                'aadhar_card_no' => 'string|size:16|unique:person_details,aadhar_card_no,' . $data->id,
+                'aadhar_card_no' => 'string|size:16|unique:person_details,aadhar_card_no,' . $person->id,
                 'government_service' => 'in:yes,no',
                 'eligible_for_income_tax' => 'in:yes,no',
                 'driving_licence' => 'in:yes,no',
@@ -134,71 +150,50 @@ class PersonDetailController extends Controller
                 'jandhan_account' => 'in:yes,no',
             ]);
 
-            if ($validated['family_id'] != $data->family_id) {
-                $family = FamilyDetail::find($validated['family_id']);
-                $existingCount = PersonDetail::where('family_id', $validated['family_id'])->count();
-                if ($existingCount >= $family->number_of_family_members) {
+            // Check family member limit if family is being changed
+            if ($validated['family_id'] != $person->family_id) {
+                $family = FamilyDetail::findOrFail($validated['family_id']);
+                $memberCount = PersonDetail::where('family_id', $validated['family_id'])->count();
+            
+                if ($memberCount >= $family->number_of_family_members) {
                     return response()->json([
                         'message' => 'This family already has the maximum number of members (' . $family->number_of_family_members . ') recorded.'
                     ], 422);
                 }
             }
 
+            // Format dates and calculate age
             $validated['date_of_birth'] = Carbon::createFromFormat('d-m-Y', $validated['date_of_birth'])->format('Y-m-d');
-            $validated['age'] = Carbon::parse($validated['date_of_birth'])->age;
+        $validated['age'] = Carbon::parse($validated['date_of_birth'])->age;
 
+            // Auto-update education status if completion year is provided
             if (!empty($validated['education_completion_year']) && $validated['education_completion_year'] <= now()->year) {
                 $validated['education'] = 'completed';
             }
 
-            $data->update($validated);
-            return response()->json(['message' => 'Updated successfully', 'data' => $data]);
+            $person->update($validated);
+            return response()->json(['message' => 'Updated successfully', 'data' => $person]);
         } catch (Exception $e) {
             return response()->json(['message' => 'Error updating record', 'error' => $e->getMessage()], 500);
         }
     }
 
-    public function destroy($id)
+    public function destroy(PersonDetail $person)
     {
-        try {
-            if (Auth::user()->role !== 'admin') {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
-
-            $data = PersonDetail::findOrFail($id);
-            $data->delete();
-
-            return response()->json(['message' => 'Deleted successfully']);
-        } catch (Exception $e) {
-            return response()->json(['message' => 'Error deleting record', 'error' => $e->getMessage()], 500);
+    // Check if user is authenticated and is admin
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
-    }
 
-    public function search(Request $request)
-    {
         try {
-            if (Auth::user()->role !== 'admin') {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
-
-            $query = PersonDetail::query();
-
-            $searchableFields = [
-                'name', 'surname', 'father_or_husband_name', 'mother_name', 'gender', 'marital_status', 'education',
-                'occupation', 'handicap', 'orphan', 'aadhar_card_no', 'government_service', 'eligible_for_income_tax',
-                'driving_licence', 'election_card', 'pan_card', 'sharamik_card', 'maa_amruta_card', 'cast_certificate',
-                'birth_certificate', 'insurance_policy', 'abha_card', 'jandhan_account', 'mobile_number', 'age'
-            ];
-
-            foreach ($searchableFields as $field) {
-                if ($request->filled($field)) {
-                    $query->where($field, $request->$field);
-                }
-            }
-
-            return response()->json($query->paginate(20));
-        } catch (Exception $e) {
-            return response()->json(['message' => 'Error searching records', 'error' => $e->getMessage()], 500);
+            $person->delete();
+            return response()->json(['message' => 'Person detail deleted successfully.'], 200);
+        } catch (\Exception $e) {
+            \Log::error('Person Delete Error: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Error deleting record.',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }

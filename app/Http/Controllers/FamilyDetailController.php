@@ -14,34 +14,52 @@ class FamilyDetailController extends Controller
      */
     public function index(Request $request)
     {
-        try {
-            $user = Auth::user();
-            $query = FamilyDetail::with('personDetails');
+    try {
+        $user = Auth::user();
+        $query = FamilyDetail::with('personDetails');
 
-            if ($user->role === 'volunteer') {
-                $query->where('user_id', $user->id);
-            } elseif ($user->role === 'admin') {
-                $filterableFields = [
-                    'head_name', 'mobile_no', 'village', 'taluka', 'district',
-                    'address', 'sub_caste', 'ration_card', 'no_of_family_members',
-                    'ward_no', 'vidhan_sabha'
-                ];
+        // Start filtering logic
+        $filterableFields = [
+            'head_name', 'mobile_no', 'village', 'taluka', 'district',
+            'address', 'sub_caste', 'ration_card', 'no_of_family_members',
+            'ward_no', 'vidhan_sabha'
+        ];
 
-                foreach ($filterableFields as $field) {
-                    if ($request->filled($field)) {
-                        $query->where($field, $request->input($field));
-                    }
+        // If volunteer, restrict to their own entries
+        if ($user->role === 'volunteer') {
+            $query->where('user_id', $user->id);
+
+            foreach ($filterableFields as $field) {
+                if ($request->filled($field)) {
+                    $query->where($field, $request->input($field));
                 }
-            } else {
-                return response()->json(['message' => 'Unauthorized'], 403);
             }
+        }
 
-            return response()->json($query->paginate(10), 200);
+        // If admin, show all or filter by query
+        elseif ($user->role === 'admin') {
+            foreach ($filterableFields as $field) {
+                if ($request->filled($field)) {
+                    $query->where($field, $request->input($field));
+                }
+            }
+        }
+
+        else {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        return response()->json($query->paginate(50), 200);
+
         } catch (\Throwable $e) {
             Log::error('Family Index Error: ' . $e->getMessage());
-            return response()->json(['message' => 'Error fetching records', 'error' => $e->getMessage()], 500);
+            return response()->json([
+                'message' => 'Error fetching records',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
+
 
     /**
      * Store a newly created family detail.
@@ -84,19 +102,20 @@ class FamilyDetailController extends Controller
     /**
      * Update the specified family detail.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, FamilyDetail $family)
     {
         try {
-            $family = FamilyDetail::findOrFail($id);
-
+            // Check if user is allowed to update
             if (!in_array(Auth::user()->role, ['admin', 'volunteer'])) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
 
+            // Volunteers can only update their own records
             if (Auth::user()->role === 'volunteer' && Auth::id() !== $family->user_id) {
                 return response()->json(['message' => 'You are not allowed to edit this record.'], 403);
             }
 
+            // Validate request data
             $validatedData = $request->validate([
                 'head_of_family' => 'nullable|string|max:122',
                 'mobile_number' => 'required|string|size:10',
@@ -111,6 +130,7 @@ class FamilyDetailController extends Controller
                 'vidhan_sabha' => 'nullable|string|max:255',
             ]);
 
+            // Update record
             $family->update($validatedData);
 
             return response()->json([
@@ -126,20 +146,20 @@ class FamilyDetailController extends Controller
     /**
      * Remove the specified family detail.
      */
-    public function destroy($id)
+    public function destroy(FamilyDetail $family)
     {
         if (Auth::user()->role !== 'admin') {
             return response()->json(['message' => 'Only admin can delete.'], 403);
         }
 
         try {
-            $family = FamilyDetail::findOrFail($id);
             $family->delete();
 
             return response()->json(['message' => 'Family detail deleted successfully.'], 200);
         } catch (\Throwable $e) {
-            Log::error('Family Delete Error: ' . $e->getMessage());
+            \Log::error('Family Delete Error: ' . $e->getMessage());
             return response()->json(['message' => 'Error deleting record.', 'error' => $e->getMessage()], 500);
         }
     }
+
 }

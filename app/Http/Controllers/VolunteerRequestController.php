@@ -39,14 +39,13 @@ class VolunteerRequestController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, VolunteerRequest $volunteerRequest)
     {
         try {
             $request->validate([
                 'status' => 'required|in:approved,rejected',
             ]);
 
-            $volunteerRequest = VolunteerRequest::findOrFail($id);
             $user = $volunteerRequest->user;
 
             if (!$user) {
