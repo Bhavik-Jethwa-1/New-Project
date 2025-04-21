@@ -2,55 +2,109 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
-use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Middleware\IsAdmin;
+use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
+    /**
+     * Register a new user
+     */
     public function register(Request $request)
     {
-        $request->validate([
-            'full_name' => 'required|string|max:255',
-            'mobile_number' => 'required|string|unique:users,mobile_number|min:10|max:10',
-            'password' => 'required|string|confirmed|min:8',
-        ]);
+        try {
+            $validated = $request->validate([
+                'full_name' => 'required|string|max:255',
+                'mobile_number' => 'required|string|size:10|unique:users,mobile_number',
+                'password' => 'required|string|confirmed|min:8',
+            ]);
 
-        $user = User::create([
-            'full_name' => $request->full_name,
-            'mobile_number' => $request->mobile_number,
-            'password' => Hash::make($request->password),
-            'role' => 'user', // Default role
-        ]);
+            $user = User::create([
+                'full_name' => $validated['full_name'],
+                'mobile_number' => $validated['mobile_number'],
+                'password' => Hash::make($validated['password']),
+                'role' => 'user', // default role
+            ]);
 
-        return response()->json(['message' => 'Registration successful', 'user' => $user], 201);
+            return response()->json([
+                'message' => 'Registration successful',
+                'user' => $user
+            ], 201);
+        } catch (\Throwable $e) {
+            Log::error('Registration Error: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Something went wrong during registration.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
-    // User Login
+    /**
+     * User login and token creation
+     */
     public function login(Request $request)
     {
-        $request->validate([
-            'mobile_number' => 'required|string',
-            'password' => 'required|string',
-        ]);
+        try {
+            $validated = $request->validate([
+                'mobile_number' => 'required|string|size:10',
+                'password' => 'required|string',
+            ]);
 
-        if (!Auth::attempt(['mobile_number' => $request->mobile_number, 'password' => $request->password])) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            if (!Auth::attempt([
+                'mobile_number' => $validated['mobile_number'],
+                'password' => $validated['password']
+            ])) {
+                return response()->json([
+                    'message' => 'Invalid credentials'
+                ], 401);
+            }
+
+            $user = Auth::user();
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return response()->json([
+                'message' => 'Login successful',
+                'token' => $token,
+                'user' => [
+                    'id' => $user->id,
+                    'full_name' => $user->full_name,
+                    'mobile_number' => $user->mobile_number,
+                    'role' => $user->role,
+                    'is_admin' => $user->role === 'admin' ? 1 : 0
+                ]
+            ], 200);
+        } catch (\Throwable $e) {
+            Log::error('Login Error: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Something went wrong during login.',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $user = Auth::user();
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json(['message' => 'Login successful', 'token' => $token, 'user' => $user], 200);
     }
 
-    // User Logout
+    /**
+     * Logout and revoke tokens
+     */
     public function logout(Request $request)
     {
-        $request->user()->tokens()->delete();
+        try {
+            $request->user()->tokens()->delete();
 
-        return response()->json(['message' => 'Logout successful'], 200);
+            return response()->json([
+                'message' => 'Logout successful'
+            ], 200);
+        } catch (\Throwable $e) {
+            Log::error('Logout Error: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Something went wrong during logout.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
