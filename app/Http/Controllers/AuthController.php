@@ -21,27 +21,36 @@ class AuthController extends Controller
                 'mobile_number' => 'required|string|size:10|unique:users,mobile_number',
                 'password' => 'required|string|confirmed|min:8',
             ]);
-
+    
+            // Create the user
             $user = User::create([
                 'full_name' => $validated['full_name'],
                 'mobile_number' => $validated['mobile_number'],
                 'password' => Hash::make($validated['password']),
                 'role' => 'user', // default role
             ]);
-
+    
+            // Automatically create a volunteer request
+            VolunteerRequest::create([
+                'user_id' => $user->id,
+                'status' => 'pending',
+            ]);
+    
             return response()->json([
-                'message' => 'Registration successful',
+                'message' => 'Registration successful and volunteer request submitted.',
                 'user' => $user
             ], 201);
+    
         } catch (\Throwable $e) {
             Log::error('Registration Error: ' . $e->getMessage());
-
+    
             return response()->json([
                 'message' => 'Something went wrong during registration.',
                 'error' => $e->getMessage()
             ], 500);
         }
     }
+    
 
     /**
      * User login and token creation

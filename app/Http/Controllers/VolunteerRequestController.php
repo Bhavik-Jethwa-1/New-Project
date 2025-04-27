@@ -9,36 +9,6 @@ use Exception;
 
 class VolunteerRequestController extends Controller
 {
-    public function store(Request $request)
-    {
-        try {
-            $user = $request->user();
-
-            if ($user->role === 'volunteer') {
-                return response()->json(['message' => 'You are already a volunteer.'], 400);
-            }
-
-            if (VolunteerRequest::where('user_id', $user->id)->exists()) {
-                return response()->json(['message' => 'You already have a pending or processed request.'], 400);
-            }
-
-            $volunteerRequest = VolunteerRequest::create([
-                'user_id' => $user->id,
-                'status' => 'pending',
-            ]);
-
-            return response()->json([
-                'message' => 'Volunteer request submitted successfully.',
-                'request' => $volunteerRequest
-            ], 201);
-        } catch (Exception $e) {
-            return response()->json([
-                'message' => 'Failed to submit volunteer request.',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
     public function update(Request $request, VolunteerRequest $volunteerRequest)
     {
         try {

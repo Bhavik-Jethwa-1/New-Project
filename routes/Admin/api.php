@@ -7,6 +7,9 @@ use App\Http\Controllers\PersonDetailController;
 
 Route::group(['middleware'=>['auth:sanctum','admin'], 'prefix' => 'admin'],function()
 {
+
+    Route::post('/logout', [AuthController::class, 'logout']);
+    
     Route::get('/volunteer-requests', [VolunteerRequestController::class, 'request_index']); #tested
     Route::put('/volunteer-requests/{volunteerRequest}', [VolunteerRequestController::class, 'update']); #tested
 
