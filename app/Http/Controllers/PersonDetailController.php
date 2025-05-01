@@ -58,7 +58,7 @@ class PersonDetailController extends Controller
                 'mother_name' => 'required|string|max:255',
                 'date_of_birth' => 'required|date_format:d-m-Y',
                 'gender' => 'required|in:male,female,others',
-                'mobile_number' => 'nullable|string|size:10',
+                'mobile_number' => 'nullable|digits:10',
                 'marital_status' => 'required|in:unmarried,married,divorced',
                 'education' => 'required|in:uneducated,studing,completed',
                 'education_details' => 'nullable|string',

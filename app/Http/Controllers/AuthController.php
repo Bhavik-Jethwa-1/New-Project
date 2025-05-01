@@ -18,7 +18,7 @@ class AuthController extends Controller
         try {
             $validated = $request->validate([
                 'full_name' => 'required|string|max:255',
-                'mobile_number' => 'required|string|size:10|unique:users,mobile_number',
+                'mobile_number' => 'required|digits:10|unique:users,mobile_number',
                 'password' => 'required|string|confirmed|min:8',
             ]);
     
@@ -59,7 +59,7 @@ class AuthController extends Controller
     {
         try {
             $validated = $request->validate([
-                'mobile_number' => 'required|string|size:10',
+                'mobile_number' => 'required|digits:10',
                 'password' => 'required|string',
             ]);
 

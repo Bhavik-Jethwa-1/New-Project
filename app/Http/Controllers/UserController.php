@@ -14,7 +14,7 @@ class UserController extends Controller
         try {
             $validated = $request->validate([
                 'full_name' => 'required|string|max:255',
-                'mobile_number' => 'required|string|unique:users,mobile_number',
+                'mobile_number' => 'required|digits:10|unique:users,mobile_number',
                 'password' => 'required|string|confirmed|min:8',
             ]);
 

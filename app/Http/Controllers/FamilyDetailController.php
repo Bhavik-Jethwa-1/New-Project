@@ -73,7 +73,7 @@ class FamilyDetailController extends Controller
         try {
             $validatedData = $request->validate([
                 'head_of_family' => 'required|string|max:122',
-                'mobile_number' => 'required|unique:family_details|string|size:10',
+                'mobile_number' => 'required|unique:family_details|digits:10',
                 'village' => 'required|string|max:255',
                 'taluka' => 'required|string|max:255',
                 'district' => 'required|string|max:255',
@@ -118,7 +118,7 @@ class FamilyDetailController extends Controller
             // Validate request data
             $validatedData = $request->validate([
                 'head_of_family' => 'nullable|string|max:122',
-                'mobile_number' => 'required|string|size:10',
+                'mobile_number' => 'required|digits:10',
                 'village' => 'nullable|string|max:255',
                 'taluka' => 'nullable|string|max:255',
                 'district' => 'nullable|string|max:255',
