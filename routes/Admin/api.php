@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\VolunteerRequestController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PersonDetailController;
+use App\Http\Controllers\FamilyDetailController;
 
 Route::group(['middleware'=>['auth:sanctum','admin'], 'prefix' => 'admin'],function()
 {
