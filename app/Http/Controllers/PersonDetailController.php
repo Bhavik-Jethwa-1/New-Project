@@ -69,7 +69,7 @@ class PersonDetailController extends Controller
                 'handicap_percentage' => 'nullable|numeric|min:1|max:100',
                 'handicap_card' => 'nullable|in:yes,no',
                 'orphan' => 'required|in:yes,no',
-                'aadhar_card_no' => 'required|string|size:16|unique:person_details,aadhar_card_no',
+                'aadhar_card_no' => 'nullable|string|size:16|unique:person_details,aadhar_card_no',
                 'government_service' => 'in:yes,no',
                 'eligible_for_income_tax' => 'in:yes,no',
                 'driving_licence' => 'in:yes,no',
