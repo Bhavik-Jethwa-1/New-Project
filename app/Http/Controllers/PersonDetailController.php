@@ -23,7 +23,7 @@ class PersonDetailController extends Controller
                 $filterableFields = [
                     'full_name', 'gender', 'dob', 'education', 'profession',
                     'mobile_no', 'email', 'aadhar_no', 'marital_status',
-                    'special_ability', 'caste', 'relation_with_head'
+                    'special_ability', 'caste',
                 ];
     
                 foreach ($filterableFields as $field) {
