@@ -79,7 +79,7 @@ class FamilyDetailController extends Controller
                 'district' => 'required|string|max:255',
                 'address' => 'required|string',
                 'sub_caste' => 'required|in:1,2,3,4',
-                'ration_card' => 'required|in:yes,no,APL,BPL',
+                'ration_card' => 'required|in:none,APL,BPL',
                 'number_of_family_members' => 'required|integer|min:1',
                 'ward_no' => 'required|integer',
                 'vidhan_sabha' => 'required|string|max:255',

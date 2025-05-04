@@ -27,12 +27,10 @@ return new class extends Migration
             $table->enum('marital_status', ['unmarried', 'married', 'divorced']);
             $table->enum('education', ['uneducated', 'studying', 'completed']);
             $table->string('education_details')->nullable();
-            $table->year('education_completion_year')->nullable();
             $table->string('aadhar_card_no', 16)->unique();
             $table->string('occupation')->nullable();
             $table->text('occupation_details')->nullable();
             $table->enum('handicap', ['yes', 'no']);
-            $table->integer('handicap_percentage')->nullable();
             $table->enum('handicap_card', ['yes', 'no'])->nullable();
             $table->enum('orphan', ['yes', 'no']);
             $table->enum('government_service', ['yes', 'no'])->nullable();

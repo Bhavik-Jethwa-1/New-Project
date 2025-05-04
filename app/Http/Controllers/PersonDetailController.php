@@ -23,7 +23,7 @@ class PersonDetailController extends Controller
                 $filterableFields = [
                     'full_name', 'gender', 'dob', 'education', 'profession',
                     'mobile_no', 'email', 'aadhar_no', 'marital_status',
-                    'special_ability', 'caste',
+                    'caste',
                 ];
     
                 foreach ($filterableFields as $field) {
@@ -62,11 +62,9 @@ class PersonDetailController extends Controller
                 'marital_status' => 'required|in:unmarried,married,divorced',
                 'education' => 'required|in:uneducated,studing,completed',
                 'education_details' => 'nullable|string',
-                'education_completion_year' => 'nullable|date_format:Y',
                 'occupation' => 'nullable|string|max:255',
                 'occupation_details' => 'nullable|string',
                 'handicap' => 'required|in:yes,no',
-                'handicap_percentage' => 'nullable|numeric|min:1|max:100',
                 'handicap_card' => 'nullable|in:yes,no',
                 'orphan' => 'required|in:yes,no',
                 'aadhar_card_no' => 'nullable|string|size:16|unique:person_details,aadhar_card_no',
@@ -97,9 +95,9 @@ class PersonDetailController extends Controller
             $validated['date_of_birth'] = Carbon::createFromFormat('d-m-Y', $request->date_of_birth)->format('Y-m-d');
             $validated['age'] = Carbon::parse($validated['date_of_birth'])->age;
 
-            if (!empty($validated['education_completion_year']) && $validated['education_completion_year'] <= now()->year) {
+          /*  if (!empty($validated['education_completion_year']) && $validated['education_completion_year'] <= now()->year) {
                 $validated['education'] = 'completed';
-            }
+            }*/
 
             $data = PersonDetail::create($validated);
             return response()->json(['message' => 'Saved successfully', 'data' => $data], 201);
