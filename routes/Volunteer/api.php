@@ -3,7 +3,7 @@ use App\Http\Controllers\PersonDetailController;
 use App\Http\Controllers\FamilyDetailController;
 use App\Http\Controllers\AuthController;
 
-Route::group(['middleware'=>['auth:sanctum','volunteer'], 'prefix' => 'volunteer'],function()
+Route::group(['middleware'=>['auth:sanctum', 'admin.or.volunteer'], 'prefix' => 'volunteer'], function ()
 {
     Route::post('/logout', [AuthController::class, 'logout']);#tested
 
