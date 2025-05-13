@@ -22,7 +22,7 @@ class FamilyDetailController extends Controller
         $filterableFields = [
             'head_name', 'mobile_no', 'village', 'taluka', 'district',
             'address', 'sub_caste', 'ration_card', 'no_of_family_members',
-            'ward_no', 'vidhan_sabha'
+            'ward_no', 'vidhan_sabha',
         ];
 
         // If volunteer, restrict to their own entries
@@ -99,53 +99,61 @@ class FamilyDetailController extends Controller
         }
     }
 
-    /**
-     * Update the specified family detail.
-     */
     public function update(Request $request, FamilyDetail $family)
     {
         try {
+            Log::info('User Role:', ['role' => Auth::user()->role]);
             // Check if user is allowed to update
             if (!in_array(Auth::user()->role, ['admin', 'volunteer'])) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
 
-            // Volunteers can only update their own records
-            if (Auth::user()->role === 'volunteer' && Auth::id() !== $family->user_id) {
-                return response()->json(['message' => 'You are not allowed to edit this record.'], 403);
+            // Allow admin to update any record
+            if (Auth::user()->role === 'volunteer') {
+                if (Auth::id() !== $family->user_id) {
+                    return response()->json(['message' => 'You are not allowed to edit this record.'], 403);
+                }
             }
+        // Validate only fields present in the request
+        $validatedData = $request->validate([
+            'head_of_family' => 'sometimes|string|max:122',
+            'mobile_number' => 'sometimes|string|digits:10',
+            'village' => 'sometimes|string|max:255',
+            'taluka' => 'sometimes|string|max:255',
+            'district' => 'sometimes|string|max:255',
+            'address' => 'sometimes|string',
+            'sub_caste' => 'sometimes|in:1,2,3,4',
+            'ration_card' => 'sometimes|in:yes,no,APL,BPL',
+            'number_of_family_members' => 'sometimes|integer|min:1',
+            'ward_no' => 'sometimes|integer',
+            'vidhan_sabha' => 'sometimes|string|max:255',
+        ]);
 
-            // Validate request data
-            $validatedData = $request->validate([
-                'head_of_family' => 'nullable|string|max:122',
-                'mobile_number' => 'required|digits:10',
-                'village' => 'nullable|string|max:255',
-                'taluka' => 'nullable|string|max:255',
-                'district' => 'nullable|string|max:255',
-                'address' => 'nullable|string',
-                'sub_caste' => 'nullable|in:1,2,3,4',
-                'ration_card' => 'nullable|in:yes,no,APL,BPL',
-                'number_of_family_members' => 'nullable|integer|min:1',
-                'ward_no' => 'nullable|integer',
-                'vidhan_sabha' => 'nullable|string|max:255',
-            ]);
+        Log::info('Validated update data:', $validatedData);
 
-            // Update record
-            $family->update($validatedData);
+        // Update only the fields provided
+        if (!$family->update($validatedData)) {
+            return response()->json(['message' => 'Update failed.'], 500);
+        }
+        $family->update($validatedData);
 
-            return response()->json([
-                'message' => 'Family detail updated successfully.',
-                'data' => $family
-            ], 200);
+        return response()->json([
+            'message' => 'Family detail updated successfully.',
+            'data' => $family
+        ], 200);
+
         } catch (\Throwable $e) {
-            Log::error('Family Update Error: ' . $e->getMessage());
-            return response()->json(['message' => 'Error updating family detail.', 'error' => $e->getMessage()], 500);
+            Log::error('Family Update Error: ' . $e->getMessage(), [
+                'request_data' => $request->all(),
+                'family_id' => $family->id
+            ]);
+            return response()->json([
+                'message' => 'Error updating family detail.',
+                'error' => 'An unexpected error occurred.'
+                ], 500);
         }
     }
 
-    /**
-     * Remove the specified family detail.
-     */
     public function destroy(FamilyDetail $family)
     {
         if (Auth::user()->role !== 'admin') {

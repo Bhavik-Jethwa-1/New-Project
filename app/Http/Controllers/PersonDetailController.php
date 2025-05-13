@@ -45,73 +45,81 @@ class PersonDetailController extends Controller
 
     public function store(Request $request)
     {
-        try {
+    try {
+        // Check if the user is authorized
             if (!in_array(Auth::user()->role, ['admin', 'volunteer'])) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
 
-            $validated = $request->validate([
-                'family_id' => 'required|exists:family_details,id',
-                'name' => 'required|string|max:255',
-                'surname' => 'required|string|max:255',
-                'father_or_husband_name' => 'required|string|max:255',
-                'mother_name' => 'required|string|max:255',
-                'date_of_birth' => 'required|date_format:d-m-Y',
-                'gender' => 'required|in:male,female,others',
-                'mobile_number' => 'nullable|digits:10',
-                'marital_status' => 'required|in:unmarried,married,divorced',
-                'education' => 'required|in:uneducated,studing,completed',
-                'education_details' => 'nullable|string',
-                'occupation' => 'nullable|string|max:255',
-                'occupation_details' => 'nullable|string',
-                'handicap' => 'required|in:yes,no',
-                'handicap_card' => 'nullable|in:yes,no',
-                'orphan' => 'required|in:yes,no',
-                'aadhar_card_no' => 'nullable|string|size:16|unique:person_details,aadhar_card_no',
-                'government_service' => 'in:yes,no',
-                'eligible_for_income_tax' => 'in:yes,no',
-                'driving_licence' => 'in:yes,no',
-                'election_card' => 'in:yes,no',
-                'pan_card' => 'in:yes,no',
-                'sharamik_card' => 'in:yes,no',
-                'maa_amruta_card' => 'in:yes,no',
-                'cast_certificate' => 'in:yes,no',
-                'birth_certificate' => 'in:yes,no',
-                'insurance_policy' => 'in:yes,no',
-                'abha_card' => 'in:yes,no',
-                'jandhan_account' => 'in:yes,no',
-            ]);
+        // Validate the request data
+        $validated = $request->validate([
+            'family_id' => 'required|exists:family_details,id',
+            'name' => 'required|string|max:255',
+            'surname' => 'required|string|max:255',
+            'father_or_husband_name' => 'required|string|max:255',
+            'mother_name' => 'required|string|max:255',
+            'date_of_birth' => 'required|date_format:d-m-Y',
+            'gender' => 'required|in:male,female,others',
+            'mobile_number' => 'nullable|digits:10',
+            'marital_status' => 'required|in:unmarried,married,divorced',
+            'education' => 'required|in:uneducated,studing,completed',
+            'education_details' => 'nullable|string',
+            'occupation' => 'nullable|string|max:255',
+            'occupation_details' => 'nullable|string',
+            'handicap' => 'required|in:yes,no',
+            'handicap_card' => 'nullable|in:yes,no',
+            'orphan' => 'required|in:yes,no',
+            'aadhar_card_no' => 'nullable|string|size:16|unique:person_details,aadhar_card_no',
+            'government_service' => 'in:yes,no',
+            'eligible_for_income_tax' => 'in:yes,no',
+            'driving_licence' => 'in:yes,no',
+            'election_card' => 'in:yes,no',
+            'pan_card' => 'in:yes,no',
+            'sharamik_card' => 'in:yes,no',
+            'maa_amruta_card' => 'in:yes,no',
+            'cast_certificate' => 'in:yes,no',
+            'birth_certificate' => 'in:yes,no',
+            'insurance_policy' => 'in:yes,no',
+            'abha_card' => 'in:yes,no',
+            'jandhan_account' => 'in:yes,no',
+        ]);
 
-            $family = FamilyDetail::find($validated['family_id']);
-            $existingCount = PersonDetail::where('family_id', $validated['family_id'])->count();
+        // Retrieve the family detail
+        $family = FamilyDetail::find($validated['family_id']);
 
-            if ($existingCount >= $family->number_of_family_members) {
-                return response()->json([
-                    'message' => 'This family already has the maximum number of members (' . $family->number_of_family_members . ') recorded.'
-                ], 422);
-            }
-
-            $validated['user_id'] = Auth::id();
-            $validated['date_of_birth'] = Carbon::createFromFormat('d-m-Y', $request->date_of_birth)->format('Y-m-d');
-            $validated['age'] = Carbon::parse($validated['date_of_birth'])->age;
-
-          /*  if (!empty($validated['education_completion_year']) && $validated['education_completion_year'] <= now()->year) {
-                $validated['education'] = 'completed';
-            }*/
-
-            $data = PersonDetail::create($validated);
-            return response()->json(['message' => 'Saved successfully', 'data' => $data], 201);
-        } catch (Exception $e) {
-            return response()->json(['message' => 'Error storing record', 'error' => $e->getMessage()], 500);
+        // Check if the authenticated user is linked to the family
+        if ($family->user_id !== Auth::id()) {
+            return response()->json(['message' => 'You are not authorized to provide information for this family.'], 403);
         }
+
+        // Check for the existing count of family members
+        $existingCount = PersonDetail::where('family_id', $validated['family_id'])->count();
+        if ($existingCount >= $family->number_of_family_members) {
+            return response()->json([
+                'message' => 'This family already has the maximum number of members (' . $family->number_of_family_members . ') recorded.'
+            ], 422);
+        }
+
+        // Prepare the validated data for storage
+        $validated['user_id'] = Auth::id();
+        $validated['date_of_birth'] = Carbon::createFromFormat('d-m-Y', $request->date_of_birth)->format('Y-m-d');
+        $validated['age'] = Carbon::parse($validated['date_of_birth'])->age;
+
+        // Create the new person detail record
+        $data = PersonDetail::create($validated);
+        return response()->json(['message' => 'Saved successfully', 'data' => $data], 201);
+        
+    } catch (Exception $e) {
+        return response()->json(['message' => 'Error storing record', 'error' => $e->getMessage()], 500);
+    }
     }
 
     public function update(Request $request, PersonDetail $person)
     {
         try {
             // Authorization check
-            if (Auth::user()->role !== 'admin' && Auth::id() !== $person->user_id) {
-                return response()->json(['message' => 'Unauthorized'], 403);
+            if (!in_array(Auth::user()->role, ['admin', 'volunteer'])) {
+            return response()->json(['message' => 'Unauthorized'], 403);
             }
 
             $validated = $request->validate([
@@ -120,7 +128,7 @@ class PersonDetailController extends Controller
                 'surname' => 'string|max:255',
                 'father_or_husband_name' => 'string|max:255',
                 'mother_name' => 'string|max:255',
-                'date_of_birth' => 'date_format:d-m-Y',
+                'date_of_birth' => 'nullable|date_format:d-m-Y',
                 'gender' => 'in:male,female,others',
                 'mobile_number' => 'nullable|digits:10',
                 'marital_status' => 'in:unmarried,married,divorced',
@@ -160,20 +168,16 @@ class PersonDetailController extends Controller
                 }
             }
 
-            // Format dates and calculate age
-            $validated['date_of_birth'] = Carbon::createFromFormat('d-m-Y', $validated['date_of_birth'])->format('Y-m-d');
-        $validated['age'] = Carbon::parse($validated['date_of_birth'])->age;
-
-            // Auto-update education status if completion year is provided
-            if (!empty($validated['education_completion_year']) && $validated['education_completion_year'] <= now()->year) {
-                $validated['education'] = 'completed';
+            if (isset($validated['date_of_birth'])) {
+                $validated['date_of_birth'] = Carbon::createFromFormat('d-m-Y', $validated['date_of_birth'])->format('Y-m-d');
+                $validated['age'] = Carbon::parse($validated['date_of_birth'])->age;
             }
 
             $person->update($validated);
             return response()->json(['message' => 'Updated successfully', 'data' => $person]);
-        } catch (Exception $e) {
-            return response()->json(['message' => 'Error updating record', 'error' => $e->getMessage()], 500);
-        }
+            } catch (Exception $e) {
+                return response()->json(['message' => 'Error updating record', 'error' => $e->getMessage()], 500);
+            }
     }
 
     public function destroy(PersonDetail $person)

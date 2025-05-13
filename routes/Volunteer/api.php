@@ -3,11 +3,11 @@ use App\Http\Controllers\PersonDetailController;
 use App\Http\Controllers\FamilyDetailController;
 use App\Http\Controllers\AuthController;
 
-Route::group(['middleware'=>['auth:sanctum','volunteer','admin'], 'prefix' => 'volunteer'],function()
+Route::group(['middleware'=>['auth:sanctum','volunteer'], 'prefix' => 'volunteer'],function()
 {
     Route::post('/logout', [AuthController::class, 'logout']);#tested
 
-    Route::get('/person-details', [PersonDetailController::class, 'index']); // Only own records        #tested
+    Route::get('/person-details', [PersonDetailController::class, 'index']); // Only own records        #changes
     Route::put('/person-details/{person}', [PersonDetailController::class, 'update']); // Only own records  #tested
     Route::post('/person-details', [PersonDetailController::class, 'store']); // Can add new             #tested
 
