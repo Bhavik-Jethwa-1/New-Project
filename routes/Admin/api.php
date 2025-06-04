@@ -6,7 +6,10 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PersonDetailController;
 use App\Http\Controllers\FamilyDetailController;
 
-Route::group(['middleware'=>['auth:sanctum','admin'], 'prefix' => 'admin'],function()
+
+Route::post('/oauth/token', [AccessTokenController::class, 'issueToken'])->name('passport.token');
+
+Route::group(['middleware'=>['auth:api', 'admin'], 'prefix' => 'admin'], function() 
 {
 
     Route::post('/logout', [AuthController::class, 'logout']);

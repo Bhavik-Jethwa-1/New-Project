@@ -77,7 +77,7 @@ class AuthController extends Controller
             $user->is_admin = $user->role === 'admin' ? true : false;
             $user->save();
 
-            $token = $user->createToken('auth_token')->plainTextToken;
+            $token = $user->createToken('AppToken')->accessToken;
 
             return response()->json([
                 'message' => 'Login successful',
