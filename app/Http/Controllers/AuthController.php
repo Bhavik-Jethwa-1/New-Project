@@ -81,13 +81,13 @@ class AuthController extends Controller
 
             return response()->json([
                 'message' => 'Login successful',
+                'is_admin' => (bool) $user->is_admin,
+                'role' => $user->role,
                 'token' => $token,
                 'user' => [
                     'id' => $user->id,
                     'full_name' => $user->full_name,
                     'mobile_number' => $user->mobile_number,
-                    'role' => $user->role,
-                    'is_admin' => (bool) $user->is_admin,
                 ]
             ], 200);
         } catch (\Throwable $e) {
