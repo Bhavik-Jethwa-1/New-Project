@@ -59,44 +59,51 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         try {
-            $validated = $request->validate([
-                'mobile_number' => 'required|digits:10',
-                'password' => 'required|string',
-            ]);
+        $validated = $request->validate([
+            'mobile_number' => 'required|digits:10',
+            'password' => 'required|string',
+        ]);
 
-            if (!Auth::attempt([
-                'mobile_number' => $validated['mobile_number'],
-                'password' => $validated['password']
-            ])) {
-                return response()->json([
-                    'message' => 'Invalid credentials'
-                ], 401);
-            }
+        if (!Auth::attempt([
+            'mobile_number' => $validated['mobile_number'],
+            'password' => $validated['password']
+        ])) {
+            return response()->json([
+                'message' => 'Invalid credentials'
+            ], 401);
+        }
 
-            $user = Auth::user();
+        $user = Auth::user();
+        
+        // Update authenticated status only if is_admin is null
+        if ($user->is_admin === null) {
             $user->is_admin = $user->role === 'admin' ? true : false;
-            $user->save();
+        }
+        
+        $user->authenticated = true;
+        $user->save();
 
-            $token = $user->createToken('AppToken')->accessToken;
+        $token = $user->createToken('AppToken')->accessToken;
 
-            return response()->json([
-                'message' => 'Login successful',
-                'is_admin' => (bool) $user->is_admin,
-                'role' => $user->role,
-                'token' => $token,
-                'user' => [
-                    'id' => $user->id,
-                    'full_name' => $user->full_name,
-                    'mobile_number' => $user->mobile_number,
-                ]
-            ], 200);
+        return response()->json([
+            'message' => 'Login successful',
+            'authenticated' => $user->authenticated,
+            'is_admin' => (bool) $user->is_admin,
+            'role' => $user->role,
+            'token' => $token,
+            'user' => [
+                'id' => $user->id,
+                'full_name' => $user->full_name,
+                'mobile_number' => $user->mobile_number,
+            ]
+        ], 200);
         } catch (\Throwable $e) {
-            Log::error('Login Error: ' . $e->getMessage());
+        Log::error('Login Error: ' . $e->getMessage());
 
-            return response()->json([
-                'message' => 'Something went wrong during login.',
-                'error' => $e->getMessage()
-            ], 500);
+        return response()->json([
+            'message' => 'Something went wrong during login.',
+            'error' => $e->getMessage()
+        ], 500);
         }
     }
 
@@ -106,10 +113,18 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         try {
-            $request->user()->tokens()->delete();
+            $user = Auth::user();
+        
+        // Update authenticated status only if is_admin is null
+            if ($user->is_admin === null) {
+                $user->authenticated = null;
+                $user->save();
+            }
+
+            $request->user()->token()->revoke();
 
             return response()->json([
-                'message' => 'Logout successful'
+                'message' => 'Successfully logged out'
             ], 200);
         } catch (\Throwable $e) {
             Log::error('Logout Error: ' . $e->getMessage());

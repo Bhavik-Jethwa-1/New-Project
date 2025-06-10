@@ -7,7 +7,7 @@ use App\Http\Controllers\PersonDetailController;
 use App\Http\Controllers\FamilyDetailController;
 
 
-Route::post('/oauth/token', [AccessTokenController::class, 'issueToken'])->name('passport.token');
+//Route::post('/oauth/token', [AccessTokenController::class, 'issueToken'])->name('passport.token');
 
 Route::group(['middleware'=>['auth:api', 'admin'], 'prefix' => 'admin'], function() 
 {

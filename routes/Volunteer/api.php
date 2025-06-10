@@ -3,7 +3,7 @@ use App\Http\Controllers\PersonDetailController;
 use App\Http\Controllers\FamilyDetailController;
 use App\Http\Controllers\AuthController;
 
-Route::post('/oauth/token', [AccessTokenController::class, 'issueToken'])->name('passport.token');
+//Route::post('/oauth/token', [AccessTokenController::class, 'issueToken'])->name('passport.token');
 
 Route::group(['middleware'=>['auth:api', 'volunteer'], 'prefix' => 'volunteer'], function()
 {
