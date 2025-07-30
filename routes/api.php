@@ -4,9 +4,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 
-require __DIR__ .'/Admin/api.php';
-require __DIR__ .'/User/api.php';
-require __DIR__ .'/Volunteer/api.php';
+require __DIR__ .'/Admin/admin.php';
+require __DIR__ .'/User/user.php';
+require __DIR__ .'/Volunteer/volunteer.php';
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -18,7 +18,10 @@ require __DIR__ .'/Volunteer/api.php';
 |
 
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+Route::middleware('auth:sanctum')->get('/user', faunction (Request $request) {
     return $request->user();
 });
 */
+
+// routes/api.php
+Route::middleware('auth:api')->get('/volunteer/person-details', [VolunteerRequestController::class, 'personDetails']);

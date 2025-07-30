@@ -5,6 +5,8 @@ use App\Http\Controllers\VolunteerRequestController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PersonDetailController;
 use App\Http\Controllers\FamilyDetailController;
+use App\Http\Controllers\AccessTokenController;
+
 
 
 //Route::post('/oauth/token', [AccessTokenController::class, 'issueToken'])->name('passport.token');

@@ -7,6 +7,8 @@ use App\Models\VolunteerRequest;
 use App\Models\User;
 use Exception;
 
+// Route::middleware('auth:sanctum')->get('/volunteer/person-details', [VolunteerRequestController::class, 'personDetails']);
+
 class VolunteerRequestController extends Controller
 {
     public function update(Request $request, VolunteerRequest $volunteerRequest)
@@ -72,4 +74,23 @@ class VolunteerRequestController extends Controller
             ], 500);
         }
     }
+
+    // VolunteerRequestController.php
+public function personDetails(Request $request)
+{
+    // $user = $request->user();
+    $user = auth()->user();
+
+    if (!$user || auth()->user()->role !== 'volunteer') {
+        return response()->json(['message' => 'Forbidden'], 403);
+    }
+
+    return response()->json([
+        'id' => $user->id,
+        'name' => $user->name,
+        'email' => $user->email,
+        'role' => $user->role,
+    ], 200);
+}
+
 }
