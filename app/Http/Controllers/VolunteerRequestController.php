@@ -16,7 +16,7 @@ class VolunteerRequestController extends Controller
         try {
             $request->validate([
                 'status' => 'required|in:approved,rejected',
-            ]);
+            ]); 
 
             $user = $volunteerRequest->user;
 
