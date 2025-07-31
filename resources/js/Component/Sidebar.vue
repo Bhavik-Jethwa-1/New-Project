@@ -9,9 +9,17 @@
 
             <!-- Navigation Links -->
             <nav class="mt-4">
+                <router-link to="Volunteer" class="block px-4 py-2 hover:bg-gray-100"
+                    active-class="bg-blue-100 font-medium">
+                    Volunteer
+                </router-link>
                 <router-link to="VolunteerDetail" class="block px-4 py-2 hover:bg-gray-100"
                     active-class="bg-blue-100 font-medium">
-                    Volunteer Request
+                    Volunteer Details
+                </router-link>
+                <router-link to="VolunteerFamily" class="block px-4 py-2 hover:bg-gray-100"
+                    active-class="bg-blue-100 font-medium">
+                    Volunteer Family
                 </router-link>
                 <router-link to="PersonDetail" class="block px-4 py-2 hover:bg-gray-100"
                     active-class="bg-blue-100 font-medium">

@@ -7,7 +7,8 @@ import { useAuthStore } from './store/auth';
 import { createApp } from 'vue';
 
 import App from './App.vue';
-import router from './routes/auth';
+import router from './routes/routes';
+import Table from './Component/Table.vue';
 
 axios.defaults.baseURL = 'http://127.0.0.1:8000'
 
@@ -23,4 +24,4 @@ const pinia = createPinia()
 
 const app = createApp(App);
 
-app.use(router).use(pinia).mount('#app');
+app.use(router).component('AppTable', Table).use(pinia).mount('#app');
